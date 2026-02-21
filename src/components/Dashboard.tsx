@@ -96,7 +96,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       try {
         if (content.startsWith('[') && content.endsWith(']')) {
           const blocks = JSON.parse(content);
-          return blocks.map((b: any) => b.type === 'text' ? b.content : '[이미지]').join(' ');
+          return blocks.map((b: any) => {
+            if (b.type === 'text') return b.content;
+            if (b.type === 'image') return '[이미지]';
+            if (b.type === 'table') return '[표]';
+            return '';
+          }).join(' ');
         }
       } catch (e) {}
       return content.replace(/<[^>]*>/g, '');

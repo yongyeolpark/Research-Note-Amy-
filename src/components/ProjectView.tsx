@@ -23,9 +23,10 @@ interface ProjectViewProps {
   projectId: number | string;
   onBack: () => void;
   initialTab?: 'notes' | 'checklists';
+  initialNoteId?: number | null;
 }
 
-export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack, initialTab = 'notes' }) => {
+export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack, initialTab = 'notes', initialNoteId }) => {
   const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -36,6 +37,15 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack, ini
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    if (initialNoteId && notes.length > 0) {
+      const noteToSelect = notes.find(n => n.id === initialNoteId);
+      if (noteToSelect) {
+        setSelectedNote(noteToSelect);
+      }
+    }
+  }, [initialNoteId, notes]);
 
   const [error, setError] = useState<string | null>(null);
   const [deletingNoteId, setDeletingNoteId] = useState<number | null>(null);
@@ -80,6 +90,14 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack, ini
     setProject(projectData);
     setNotes(notesData || []);
     setChecklists(sortedChecklists);
+
+    // If initialNoteId is provided, open that note
+    if (initialNoteId && notesData) {
+      const noteToSelect = notesData.find(n => n.id === initialNoteId);
+      if (noteToSelect) {
+        setSelectedNote(noteToSelect);
+      }
+    }
   };
 
   useEffect(() => {
@@ -298,12 +316,41 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack, ini
               <div key={i}>
                 {b.type === 'text' ? (
                   <p className="whitespace-pre-wrap text-slate-700 leading-relaxed">{b.content}</p>
-                ) : (
+                ) : b.type === 'image' ? (
                   <div 
                     className="relative bg-slate-50 rounded-xl overflow-hidden border border-slate-100 shadow-sm mx-auto"
                     style={{ width: `${b.width || 100}%` }}
                   >
                     <img src={b.content} alt="Research" className="w-full" />
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto border border-slate-200 rounded-lg bg-white shadow-sm">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200">
+                          <th className="w-10 p-2 border-r border-slate-200"></th>
+                          {b.tableData?.rows[0].map((_: any, colIndex: number) => (
+                            <th key={colIndex} className="p-2 border-r border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                              {b.tableData?.colHeaders?.[colIndex] || String.fromCharCode(65 + colIndex)}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {b.tableData?.rows.map((row: string[], rIdx: number) => (
+                          <tr key={rIdx} className="border-b border-slate-100 last:border-0">
+                            <td className="p-2 bg-slate-50 border-r border-slate-200 text-center text-[10px] font-bold text-slate-400">
+                              {b.tableData?.rowHeaders?.[rIdx] || (rIdx + 1).toString()}
+                            </td>
+                            {row.map((cell: string, cIdx: number) => (
+                              <td key={cIdx} className="p-3 border-r border-slate-100 last:border-r-0 text-sm text-slate-700 whitespace-pre-wrap">
+                                {cell}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
@@ -321,11 +368,15 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack, ini
         const blocks = JSON.parse(content);
         const firstText = blocks.find((b: any) => b.type === 'text')?.content || '';
         const firstImage = blocks.find((b: any) => b.type === 'image')?.content;
+        const hasTable = blocks.some((b: any) => b.type === 'table');
         
         return (
           <div className="flex gap-4">
             <div className="flex-1">
-              <p className="text-sm text-slate-500 line-clamp-3 leading-relaxed">{firstText}</p>
+              <p className="text-sm text-slate-500 line-clamp-3 leading-relaxed">
+                {firstText}
+                {hasTable && <span className="ml-2 text-indigo-500 font-medium">[표 포함]</span>}
+              </p>
             </div>
             {firstImage && (
               <div className="w-20 h-20 shrink-0 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">

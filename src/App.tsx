@@ -18,15 +18,17 @@ function AppContent() {
   const { user, logout, loading } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
   const [initialTab, setInitialTab] = useState<'notes' | 'checklists'>('notes');
 
   if (loading) return null;
   if (!user) return <Auth />;
 
-  const handleNavigate = (view: string, projectId?: number, tab: 'notes' | 'checklists' = 'notes') => {
+  const handleNavigate = (view: string, projectId?: number, tab: 'notes' | 'checklists' = 'notes', noteId?: number) => {
     setCurrentView(view);
     if (projectId) setSelectedProjectId(projectId);
     setInitialTab(tab);
+    setSelectedNoteId(noteId || null);
   };
 
   return (
@@ -116,6 +118,7 @@ function AppContent() {
                 projectId={selectedProjectId} 
                 onBack={() => setCurrentView('projects')} 
                 initialTab={initialTab}
+                initialNoteId={selectedNoteId}
               />
             </motion.div>
           )}
@@ -127,10 +130,12 @@ function AppContent() {
               exit={{ opacity: 0, x: -20 }}
               className="h-full overflow-y-auto"
             >
-              <Calendar onSelectDate={(date) => {
-                // For now, just a placeholder or we could navigate to a specific project search
-                console.log('Selected date:', date);
-              }} />
+              <Calendar 
+                onSelectDate={(date) => {
+                  console.log('Selected date:', date);
+                }} 
+                onNavigate={handleNavigate}
+              />
             </motion.div>
           )}
         </AnimatePresence>

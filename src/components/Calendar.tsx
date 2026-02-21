@@ -7,9 +7,10 @@ import { supabase } from '../lib/supabase';
 
 interface CalendarProps {
   onSelectDate: (date: string) => void;
+  onNavigate: (view: string, projectId?: number, tab?: 'notes' | 'checklists', noteId?: number) => void;
 }
 
-export const Calendar: React.FC<CalendarProps> = ({ onSelectDate }) => {
+export const Calendar: React.FC<CalendarProps> = ({ onSelectDate, onNavigate }) => {
   const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [notes, setNotes] = useState<Note[]>([]);
@@ -136,7 +137,14 @@ export const Calendar: React.FC<CalendarProps> = ({ onSelectDate }) => {
                 
                 <div className="mt-2 space-y-1 overflow-hidden">
                   {dayNotes.slice(0, 2).map(note => (
-                    <div key={note.id} className="text-[10px] px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded truncate border border-indigo-100">
+                    <div 
+                      key={note.id} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onNavigate('project', note.project_id, 'notes', note.id);
+                      }}
+                      className="text-[10px] px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded truncate border border-indigo-100 hover:bg-indigo-100 transition-colors"
+                    >
                       {note.title}
                     </div>
                   ))}
