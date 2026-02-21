@@ -71,7 +71,7 @@ export const Calendar: React.FC<CalendarProps> = ({ onSelectDate }) => {
     <div className="p-8 max-w-5xl mx-auto">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-semibold text-slate-900">Research Calendar</h1>
+          <h1 className="text-3xl font-semibold text-slate-900">Lab Calendar</h1>
           <p className="text-slate-500">Track your daily activity and findings.</p>
         </div>
         

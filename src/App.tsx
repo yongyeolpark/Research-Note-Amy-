@@ -10,7 +10,7 @@ import {
   FolderRoot, 
   Calendar as CalendarIcon, 
   LogOut,
-  Beaker
+  Notebook
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -18,13 +18,15 @@ function AppContent() {
   const { user, logout, loading } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [initialTab, setInitialTab] = useState<'notes' | 'checklists'>('notes');
 
   if (loading) return null;
   if (!user) return <Auth />;
 
-  const handleNavigate = (view: string, projectId?: number) => {
+  const handleNavigate = (view: string, projectId?: number, tab: 'notes' | 'checklists' = 'notes') => {
     setCurrentView(view);
     if (projectId) setSelectedProjectId(projectId);
+    setInitialTab(tab);
   };
 
   return (
@@ -33,9 +35,9 @@ function AppContent() {
       <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0">
         <div className="p-6 flex items-center gap-3">
           <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
-            <Beaker size={18} className="text-white" />
+            <Notebook size={18} className="text-white" />
           </div>
-          <span className="font-bold text-lg tracking-tight">Amy's Note</span>
+          <span className="font-bold text-lg tracking-tight">Amy's Lab Note</span>
         </div>
 
         <nav className="flex-1 px-4 py-4 space-y-1">
@@ -113,6 +115,7 @@ function AppContent() {
               <ProjectView 
                 projectId={selectedProjectId} 
                 onBack={() => setCurrentView('projects')} 
+                initialTab={initialTab}
               />
             </motion.div>
           )}

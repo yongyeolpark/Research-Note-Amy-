@@ -13,7 +13,7 @@ import {
 import { supabase } from '../lib/supabase';
 
 interface DashboardProps {
-  onNavigate: (view: string, projectId?: number) => void;
+  onNavigate: (view: string, projectId?: number, tab?: 'notes' | 'checklists') => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
@@ -49,7 +49,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             activeChecklists: (activeChecklists || []).map(cl => ({ 
               ...cl, 
               project_name: Array.isArray(cl.projects) ? cl.projects[0]?.name : cl.projects?.name, 
-              items: cl.checklist_items 
+              items: (cl.checklist_items || []).sort((a: any, b: any) => a.id - b.id)
             }))
           });
         }
@@ -65,7 +65,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <header className="mb-8">
-        <h1 className="text-3xl font-semibold text-slate-900">Research Overview</h1>
+        <h1 className="text-3xl font-semibold text-slate-900">Lab Overview</h1>
         <p className="text-slate-500">Welcome back. Here's what's happening in your projects.</p>
       </header>
 
@@ -164,10 +164,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   const progress = total > 0 ? (completed / total) * 100 : 0;
                   
                   return (
-                    <div key={cl.id} className="space-y-2">
+                    <div 
+                      key={cl.id} 
+                      className="space-y-2 cursor-pointer group/item p-2 -m-2 rounded-xl hover:bg-slate-50 transition-colors"
+                      onClick={() => onNavigate('project', cl.project_id, 'checklists')}
+                    >
                       <div className="flex justify-between items-end">
                         <div>
-                          <h3 className="text-sm font-medium text-slate-900">{cl.title}</h3>
+                          <h3 className="text-sm font-medium text-slate-900 group-hover/item:text-indigo-600 transition-colors">{cl.title}</h3>
                           <span className="text-[10px] text-slate-400 uppercase tracking-wider">{cl.project_name}</span>
                         </div>
                         <span className="text-xs font-mono text-slate-500">{completed}/{total}</span>
@@ -186,15 +190,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </div>
           </section>
 
-          <section className="bg-slate-900 text-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <Clock size={18} className="text-indigo-400" />
-              <h2 className="font-medium text-sm">오늘의 팁</h2>
-            </div>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              캘린더를 활용하여 매일의 연구 성과를 추적해보세요. 노트가 작성된 날짜는 강조 표시되어 꾸준한 연구 습관을 유지하는 데 도움이 됩니다.
-            </p>
-          </section>
         </div>
       </div>
     </div>

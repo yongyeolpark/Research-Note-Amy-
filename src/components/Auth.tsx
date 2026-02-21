@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { motion } from 'motion/react';
-import { Beaker, LogIn, UserPlus } from 'lucide-react';
+import { Notebook, LogIn, UserPlus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export const Auth: React.FC = () => {
@@ -45,9 +45,9 @@ export const Auth: React.FC = () => {
       >
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-4">
-            <Beaker className="text-white w-6 h-6" />
+            <Notebook className="text-white w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-semibold text-slate-900">Amy's Note Pro</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Amy's Lab Note Pro</h1>
           <p className="text-slate-500 text-sm mt-1">
             {isLogin ? 'Welcome back, researcher' : 'Start your research journey'}
           </p>

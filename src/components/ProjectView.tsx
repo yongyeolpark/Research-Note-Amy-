@@ -22,15 +22,21 @@ import html2canvas from 'html2canvas';
 interface ProjectViewProps {
   projectId: number | string;
   onBack: () => void;
+  initialTab?: 'notes' | 'checklists';
 }
 
-export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack }) => {
+export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack, initialTab = 'notes' }) => {
   const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [checklists, setChecklists] = useState<Checklist[]>([]);
-  const [activeTab, setActiveTab] = useState<'notes' | 'checklists'>('notes');
+  const [activeTab, setActiveTab] = useState<'notes' | 'checklists'>(initialTab);
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
   const [error, setError] = useState<string | null>(null);
   const [deletingNoteId, setDeletingNoteId] = useState<number | null>(null);
   const [deletingChecklistId, setDeletingChecklistId] = useState<number | null>(null);
@@ -65,9 +71,15 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack }) =
       .select('*, items:checklist_items(*)')
       .eq('project_id', projectId);
     
+    // Sort checklist items by ID to maintain stable order
+    const sortedChecklists = (checklistsData || []).map(cl => ({
+      ...cl,
+      items: (cl.items || []).sort((a: any, b: any) => a.id - b.id)
+    }));
+    
     setProject(projectData);
     setNotes(notesData || []);
-    setChecklists(checklistsData || []);
+    setChecklists(sortedChecklists);
   };
 
   useEffect(() => {
@@ -178,25 +190,45 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack }) =
   };
 
   const toggleItem = async (itemId: number, completed: number) => {
+    // Optimistic update: update local state immediately
+    const newCompleted = completed ? 0 : 1;
+    setChecklists(prev => prev.map(cl => ({
+      ...cl,
+      items: cl.items.map(item => 
+        item.id === itemId ? { ...item, completed: newCompleted } : item
+      )
+    })));
+
     const { error } = await supabase
       .from('checklist_items')
-      .update({ completed: !completed })
+      .update({ completed: newCompleted })
       .eq('id', itemId);
     
-    if (!error) fetchData();
+    if (error) {
+      // Rollback on error by fetching fresh data
+      console.error('Toggle item error:', error);
+      fetchData();
+      setError(`상태 변경 실패: ${error.message}`);
+    }
+    // No need to call fetchData() on success as state is already updated
   };
 
   const handleDeleteItem = async (itemId: number) => {
+    // Optimistic update
+    setChecklists(prev => prev.map(cl => ({
+      ...cl,
+      items: cl.items.filter(item => item.id !== itemId)
+    })));
+
     const { error } = await supabase
       .from('checklist_items')
       .delete()
       .eq('id', itemId);
     
-    if (!error) {
-      setError(null);
+    if (error) {
+      // Rollback on error
       fetchData();
-    } else {
-      setError(`Item delete failed: ${error.message}`);
+      setError(`항목 삭제 실패: ${error.message}`);
     }
   };
 
@@ -335,7 +367,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack }) =
       // 1. Add Cover Page
       container.innerHTML = `
         <div style="padding: 40px; text-align: center; height: 260mm; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px solid #4f46e5; border-radius: 12px;">
-          <div style="font-size: 12px; color: #4f46e5; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; font-weight: bold;">Research Project Report</div>
+          <div style="font-size: 12px; color: #4f46e5; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; font-weight: bold;">Lab Project Report</div>
           <h1 style="font-size: 48px; font-weight: 800; margin-bottom: 20px; color: #111827; line-height: 1.2;">${project.name}</h1>
           <div style="width: 60px; height: 4px; background: #4f46e5; margin: 20px auto;"></div>
           <p style="font-size: 18px; color: #4b5563; max-width: 80%; margin-bottom: 40px; line-height: 1.6;">${project.description || 'No description provided.'}</p>
@@ -445,7 +477,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack }) =
         }
       }
 
-      pdf.save(`${project.name}_Research_Report.pdf`);
+      pdf.save(`${project.name}_Lab_Report.pdf`);
     } catch (err: any) {
       console.error('PDF Export Error:', err);
       setError(`Failed to export PDF: ${err.message || 'Unknown error'}. Check console for details.`);
@@ -517,7 +549,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack }) =
           }}
           className={`py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'notes' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
         >
-          Amy's Notes
+          Amy's Lab Notes
         </button>
         <button 
           onClick={() => {
@@ -645,7 +677,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack }) =
                               onClick={() => toggleItem(item.id, item.completed)}
                               className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${item.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 hover:border-indigo-500'}`}
                             >
-                              {item.completed && <Check size={12} />}
+                              {!!item.completed && <Check size={12} />}
                             </button>
                             <span className={`text-sm ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
                               {item.text}
@@ -739,7 +771,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack }) =
               className="relative bg-white w-full max-w-5xl h-[90vh] rounded-2xl shadow-xl overflow-hidden flex flex-col"
             >
               <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
-                <h2 className="text-lg font-semibold text-slate-900">{editingNote?.id ? 'Edit Note' : "New Amy's Note"}</h2>
+                <h2 className="text-lg font-semibold text-slate-900">{editingNote?.id ? 'Edit Note' : "New Amy's Lab Note"}</h2>
                 <button onClick={() => setIsEditingNote(false)} className="p-1 hover:bg-slate-100 rounded">
                   <X size={20} className="text-slate-400" />
                 </button>
