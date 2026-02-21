@@ -5,6 +5,21 @@ import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
+const PROJECT_COLORS = [
+  { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-100', hover: 'hover:bg-indigo-100', dot: 'bg-indigo-400' },
+  { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100', hover: 'hover:bg-emerald-100', dot: 'bg-emerald-400' },
+  { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-100', hover: 'hover:bg-rose-100', dot: 'bg-rose-400' },
+  { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100', hover: 'hover:bg-amber-100', dot: 'bg-amber-400' },
+  { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-100', hover: 'hover:bg-violet-100', dot: 'bg-violet-400' },
+  { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-100', hover: 'hover:bg-cyan-100', dot: 'bg-cyan-400' },
+  { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-100', hover: 'hover:bg-orange-100', dot: 'bg-orange-400' },
+  { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100', hover: 'hover:bg-blue-100', dot: 'bg-blue-400' },
+];
+
+const getProjectColor = (projectId: number) => {
+  return PROJECT_COLORS[projectId % PROJECT_COLORS.length];
+};
+
 interface CalendarProps {
   onSelectDate: (date: string) => void;
   onNavigate: (view: string, projectId?: number, tab?: 'notes' | 'checklists', noteId?: number) => void;
@@ -83,7 +98,14 @@ export const Calendar: React.FC<CalendarProps> = ({ onSelectDate, onNavigate }) 
             className="text-sm border-none focus:ring-0 bg-transparent px-3 py-1 font-medium text-slate-600"
           >
             <option value="all">All Projects</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {projects.map(p => {
+              const color = getProjectColor(p.id);
+              return (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              );
+            })}
           </select>
           <div className="h-4 w-px bg-slate-200" />
           <div className="flex items-center gap-2">
@@ -99,6 +121,20 @@ export const Calendar: React.FC<CalendarProps> = ({ onSelectDate, onNavigate }) 
           </div>
         </div>
       </header>
+      
+      {projects.length > 0 && (
+        <div className="flex flex-wrap gap-4 mb-6 px-1">
+          {projects.map(p => {
+            const color = getProjectColor(p.id);
+            return (
+              <div key={p.id} className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${color.dot}`} />
+                <span className="text-xs font-medium text-slate-600">{p.name}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
@@ -127,27 +163,31 @@ export const Calendar: React.FC<CalendarProps> = ({ onSelectDate, onNavigate }) 
                   </span>
                   {dayNotes.length > 0 && (
                     <div className="flex gap-0.5">
-                      {dayNotes.slice(0, 3).map((_, i) => (
-                        <div key={i} className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                      ))}
+                      {dayNotes.slice(0, 3).map((note, i) => {
+                        const color = getProjectColor(note.project_id);
+                        return <div key={i} className={`w-1.5 h-1.5 rounded-full ${color.dot}`} />;
+                      })}
                       {dayNotes.length > 3 && <span className="text-[8px] text-slate-400">+{dayNotes.length - 3}</span>}
                     </div>
                   )}
                 </div>
                 
                 <div className="mt-2 space-y-1 overflow-hidden">
-                  {dayNotes.slice(0, 2).map(note => (
-                    <div 
-                      key={note.id} 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onNavigate('project', note.project_id, 'notes', note.id);
-                      }}
-                      className="text-[10px] px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded truncate border border-indigo-100 hover:bg-indigo-100 transition-colors"
-                    >
-                      {note.title}
-                    </div>
-                  ))}
+                  {dayNotes.slice(0, 2).map(note => {
+                    const color = getProjectColor(note.project_id);
+                    return (
+                      <div 
+                        key={note.id} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNavigate('project', note.project_id, 'notes', note.id);
+                        }}
+                        className={`text-[10px] px-1.5 py-0.5 ${color.bg} ${color.text} rounded truncate border ${color.border} ${color.hover} transition-colors`}
+                      >
+                        {note.title}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
