@@ -18,6 +18,7 @@ import { useAuth } from '../AuthContext';
 import { RichNoteEditor } from './RichNoteEditor';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 interface ProjectViewProps {
   projectId: number | string;
@@ -323,7 +324,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack, ini
                   >
                     <img src={b.content} alt="Research" className="w-full" />
                   </div>
-                ) : (
+                ) : b.type === 'table' ? (
                   <div className="overflow-x-auto border border-slate-200 rounded-lg bg-white shadow-sm">
                     <table className="w-full border-collapse">
                       <thead>
@@ -352,6 +353,57 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack, ini
                       </tbody>
                     </table>
                   </div>
+                ) : (
+                  <div className="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
+                    {b.chartData?.title && (
+                      <div className="px-4 py-2 bg-slate-50 border-b border-slate-200">
+                        <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider">{b.chartData.title}</h4>
+                      </div>
+                    )}
+                    <div className="h-64 p-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        {b.chartData?.type === 'line' ? (
+                          <LineChart data={b.chartData.data} margin={{ top: 10, right: 30, left: 20, bottom: 25 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis 
+                              dataKey="name" 
+                              fontSize={12} 
+                              tick={{ fill: '#64748b' }} 
+                              label={{ value: b.chartData.xAxisLabel, position: 'insideBottom', offset: -15, fontSize: 10, fill: '#94a3b8', fontWeight: 'bold' }}
+                            />
+                            <YAxis 
+                              fontSize={12} 
+                              tick={{ fill: '#64748b' }} 
+                              label={{ value: b.chartData.yAxisLabel, angle: -90, position: 'insideLeft', offset: 10, fontSize: 10, fill: '#94a3b8', fontWeight: 'bold' }}
+                            />
+                            <Tooltip 
+                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                            />
+                            <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={2} dot={{ fill: '#6366f1', r: 4 }} />
+                          </LineChart>
+                        ) : (
+                          <BarChart data={b.chartData?.data} margin={{ top: 10, right: 30, left: 20, bottom: 25 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis 
+                              dataKey="name" 
+                              fontSize={12} 
+                              tick={{ fill: '#64748b' }} 
+                              label={{ value: b.chartData?.xAxisLabel, position: 'insideBottom', offset: -15, fontSize: 10, fill: '#94a3b8', fontWeight: 'bold' }}
+                            />
+                            <YAxis 
+                              fontSize={12} 
+                              tick={{ fill: '#64748b' }} 
+                              label={{ value: b.chartData?.yAxisLabel, angle: -90, position: 'insideLeft', offset: 10, fontSize: 10, fill: '#94a3b8', fontWeight: 'bold' }}
+                            />
+                            <Tooltip 
+                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                            />
+                            <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        )}
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
                 )}
               </div>
             ))}
@@ -369,6 +421,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack, ini
         const firstText = blocks.find((b: any) => b.type === 'text')?.content || '';
         const firstImage = blocks.find((b: any) => b.type === 'image')?.content;
         const hasTable = blocks.some((b: any) => b.type === 'table');
+        const hasChart = blocks.some((b: any) => b.type === 'chart');
         
         return (
           <div className="flex gap-4">
@@ -376,6 +429,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack, ini
               <p className="text-sm text-slate-500 line-clamp-3 leading-relaxed">
                 {firstText}
                 {hasTable && <span className="ml-2 text-indigo-500 font-medium">[표 포함]</span>}
+                {hasChart && <span className="ml-2 text-indigo-500 font-medium">[그래프 포함]</span>}
               </p>
             </div>
             {firstImage && (

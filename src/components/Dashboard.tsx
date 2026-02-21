@@ -100,6 +100,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             if (b.type === 'text') return b.content;
             if (b.type === 'image') return '[이미지]';
             if (b.type === 'table') return '[표]';
+            if (b.type === 'chart') return '[그래프]';
             return '';
           }).join(' ');
         }
