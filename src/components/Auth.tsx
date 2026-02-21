@@ -47,7 +47,7 @@ export const Auth: React.FC = () => {
           <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-4">
             <Beaker className="text-white w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-semibold text-slate-900">Research Note Pro</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Amy Note Pro</h1>
           <p className="text-slate-500 text-sm mt-1">
             {isLogin ? 'Welcome back, researcher' : 'Start your research journey'}
           </p>

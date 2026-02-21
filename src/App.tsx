@@ -35,7 +35,7 @@ function AppContent() {
           <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
             <Beaker size={18} className="text-white" />
           </div>
-          <span className="font-bold text-lg tracking-tight">Research Note</span>
+          <span className="font-bold text-lg tracking-tight">Amy Note</span>
         </div>
 
         <nav className="flex-1 px-4 py-4 space-y-1">

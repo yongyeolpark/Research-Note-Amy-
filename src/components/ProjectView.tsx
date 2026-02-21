@@ -517,7 +517,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack }) =
           }}
           className={`py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'notes' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
         >
-          Research Notes
+          Amy Notes
         </button>
         <button 
           onClick={() => {
@@ -739,7 +739,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ projectId, onBack }) =
               className="relative bg-white w-full max-w-5xl h-[90vh] rounded-2xl shadow-xl overflow-hidden flex flex-col"
             >
               <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
-                <h2 className="text-lg font-semibold text-slate-900">{editingNote?.id ? 'Edit Note' : 'New Research Note'}</h2>
+                <h2 className="text-lg font-semibold text-slate-900">{editingNote?.id ? 'Edit Note' : 'New Amy Note'}</h2>
                 <button onClick={() => setIsEditingNote(false)} className="p-1 hover:bg-slate-100 rounded">
                   <X size={20} className="text-slate-400" />
                 </button>
